@@ -1,5 +1,7 @@
 # cql-seq
 
+[![Build Status](https://secure.travis-ci.org/mccraigmccraig/cql-seq.png)](http://travis-ci.org/mccraigmccraig/cql-seq)
+
 A library which provides a sequence abstraction for use with ClojureQL queries
 
 ## Usage

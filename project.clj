@@ -8,6 +8,6 @@
                  [org.clojure/java.jdbc "0.1.4"]
                  [clojureql "1.0.3"]]
   :profiles {:dev
-             {:dependencies [[midje "1.4.0"]]}}
+             {:dependencies [[midje "1.4.0" :exclusions [org.clojure/clojure]]]}}
   :min-lein-version "2.0.0"
   :plugins [[lein-midje "2.0.0-SNAPSHOT"]])

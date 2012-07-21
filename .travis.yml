@@ -1,2 +1,3 @@
+lein: lein2
 language: clojure
 script: lein midje

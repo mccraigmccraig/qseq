@@ -5,12 +5,12 @@
             [clojureql.core :as q]))
 
 (def sql-bound-fns
-  "given an inequality operator, return the sql function which can be used
-   with a key to determine a default value for the bound"
   {:<= :max
    :>= :min})
 
 (defn sql-bound-fn
+  "given an inequality operator, return the sql function which can be used
+   with a key to determine a default value for the bound"
   [operator]
   (let [sqlfn (sql-bound-fns operator)]
     (if-not sqlfn

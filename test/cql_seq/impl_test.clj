@@ -1,4 +1,4 @@
-(ns cql-seq.core-test
+(ns cql-seq.impl-test
   (:use clojure.test
         cql-seq.impl
         midje.sweet))
@@ -16,8 +16,6 @@
 (fact
   (simple-key-transform-col :max :foo) => ["max(foo)" :as :max_foo])
 
-;.;. The highest reward for a man's toil is not what he gets for it but what
-;.;. he becomes by it. -- Ruskin
 (fact
   (key-transform-cols :max :foo) => ["max(foo)" :as :max_foo]
   (key-transform-cols :max [:foo :bar])=> [["max(foo)" :as :max_foo]
@@ -29,3 +27,19 @@
   (very-lazy-concat [] [[1 2 3] [4 5 6]]) => [1 2 3 4 5 6]
   (very-lazy-concat [1 2] [[] [3 4] [] [5 6] []]) => [1 2 3 4 5 6]
   (very-lazy-concat nil [[] [1 2 3] [] [4 5 6] []]) => [1 2 3 4 5 6])
+
+(fact
+  (compound-key-conditions :<= nil [:foo] [10]) => '((and (<= :foo 10)))
+  (compound-key-conditions :<= nil [:foo] [10]) => '((and (<= :foo 10)))
+  (compound-key-conditions :<= nil [:foo :bar] [10 20]) => '((and (<= :foo 10))
+                                                            (and (= :foo 10) (<= :bar 20))))
+
+;.;. The biggest reward for a thing well done is to have done it. -- Voltaire
+(fact
+  (key-condition :<= :foo 10) => '(or (and (<= :foo 10)))
+  (key-condition :<= [:foo :bar] [10 20]) => '(or (and (<= :foo 10))
+                                                  (and (= :foo 10) (<= :bar 20)))
+  (key-condition :<= [:foo :bar :baz] [10 20 30]) => '(or (and (<= :foo 10))
+                                                          (and (= :foo 10) (<= :bar 20))
+                                                          (and (= :bar 20) (= :foo 10) (<= :baz 30)))
+  )

@@ -22,25 +22,8 @@
   [table]
   (or (:key (meta table)) :id))
 
-(defn compound-key-condition
-  [operator key bound]
-  (if (not (sequential? bound)) (throw (RuntimeException. "if key is compound, upper-bound must be too")))
-  (if (not= (count key) (count bound)) (throw (RuntimeException. "key and upper-bound must have the same length")))
-
-  )
-
-(defn simple-key-condition
-  [operator key bound]
-  (list (-> operator name symbol) key bound))
-
-(defn key-condition
-  [operator key bound]
-  (let [condition-exprs (if (sequential? key)
-                          (compound-key-condition operator key bound)
-                          (simple-key-condition operator key bound))]
-    (eval `(q/where ~condition-exprs))))
-
 (defn simple-key-transform-col
+  ""
   [sqlfn key]
   (let [sqlfnname (name sqlfn)
         keyname (name key)]
@@ -51,6 +34,24 @@
   (if (sequential? key)
     (map (partial simple-key-transform-col sqlfn) key)
     (simple-key-transform-col sqlfn key)))
+
+(defn compound-key-conditions
+  [operator  eq-conds [key & next-keys] [bound & next-bounds]]
+  (cons
+   `(~'and ~@eq-conds (~(-> operator name symbol) ~key ~bound))
+   (if (not-empty next-keys)
+     (compound-key-conditions operator (conj eq-conds `(~'= ~key ~bound)) next-keys next-bounds))))
+
+(defn key-condition
+  "given an operator and a simple or compound key and corresponding bound, return query conditions for records
+   which meet the predicate composed of the operator and bound"
+  [operator key bound]
+  (let [keys (if (sequential? key) key [key])
+        bounds (if (sequential? bound) bound [bound])]
+    (if (not= (count keys) (count bounds))
+      (throw (RuntimeException. "key and upper-bound must have the same number of components")))
+    (let [kc (compound-key-conditions operator nil keys bounds)]
+      `(~'or ~@kc))))
 
 (defn very-lazy-concat
   "lazier than (apply concat seqs)"

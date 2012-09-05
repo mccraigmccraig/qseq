@@ -10,9 +10,9 @@
   (boundary-query-sort-direction '>=) => :asc)
 
 (fact
-  (exclusion-operator-for-traversal-direction :asc) => '>
-  (exclusion-operator-for-traversal-direction "asc") => '>
-  (exclusion-operator-for-traversal-direction 'desc) => '<)
+  (inclusion-operator-for-traversal-direction :asc) => '<=
+  (inclusion-operator-for-traversal-direction "asc") => '<=
+  (inclusion-operator-for-traversal-direction 'desc) => '>=)
 
 (fact
   (very-lazy-apply-concat [1 2] [[3 4] [5 6]]) => [1 2 3 4 5 6]

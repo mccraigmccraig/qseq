@@ -17,15 +17,15 @@
   [operator]
   (boundary-query-sort-directions (name operator)))
 
-(def exclusion-operators-for-traversal-directions
-  "exclusion operators for different sort directions, used to exclude seen results"
-  {"asc" '>
-   "desc" '<})
+(def inclusion-operators-for-traversal-directions
+  "inclusion operators for different sort directions"
+  {"asc" '<=
+   "desc" '>=})
 
-(defn exclusion-operator-for-traversal-direction
-  "give a sort direction return the exclusion operator used to exclude previously seen results"
+(defn inclusion-operator-for-traversal-direction
+  "given a sort direction return the inclusion operator used to exclude previously seen results with q-outside-boundary"
   [dir]
-  (exclusion-operators-for-traversal-directions (name dir)))
+  (inclusion-operators-for-traversal-directions (name dir)))
 
 (defn very-lazy-apply-concat
   "lazier than (apply concat seqs)... evaluates nothing at construction time"
@@ -99,9 +99,9 @@
       (with-meta {:key key})))
 
 (defn q-seq-batch
-  "query retrieving a batch of records sorted by key with (not (operator key lower-bound))"
+  "query retrieving a batch of records sorted by key with (not (operator key lower-boundary))"
   [table batch-size key dir lower-boundary]
   (-> table
       (q-sorted :key key :dir dir)
-      (q-outside-boundary (exclusion-operator-for-traversal-direction dir) key lower-boundary)
+      (q-outside-boundary (inclusion-operator-for-traversal-direction dir) key lower-boundary)
       (q/take batch-size)))

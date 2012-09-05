@@ -5,75 +5,75 @@
             [clojure.java.jdbc :as sql]
             [clojureql.core :as q]))
 
-(defonce db (atom nil))
+(defonce default-transactor (atom nil))
 
 (defn transactor
-  "simple transactor, uses a transaction on the connection pool in db"
-  [fn]
-  (sql/with-connection @db
-    (sql/transaction
-     (fn))))
+  "construct a simple transactor, which runs a transaction on a connection from db"
+  [db]
+  (fn [fn]
+    (sql/with-connection db
+      (sql/transaction
+        (fn)))))
 
 (defmacro transaction
   "run some forms inside a transaction with the given transactor"
   [transactor & forms]
   `(~transactor (fn [] ~@forms)))
 
+;;;;;;;;;;;;;;;;;;;;; bounded queries
+
 (defn q-boundary-value
-  "returns a query to find the boundary value of a (simple or compound) key from a clojureql query.
+  "returns a query to find the bounding value of a (simple or compound) key from a clojureql query.
    key: a simple or compound key. defaults to the :key metadata on table or :id.
-   operator: :<= or :>= . defaults to :<= .
-             boundary value is determined by operator. :<= returns max(key), while :>= returns min(key).
-   bound: if given, returns boundary value where (key operator bound)"
-  ([table & {:keys [key bound operator] :or {key (sort-key table) operator :<=}}]
+   operator: <, >, <=, >=. defaults to <=
+   boundary: if given, returns bounding key value where (operator key boundary)
+
+   if operator is < or <= then the maximum key value will be returned... if operator is > or >=
+   then the minimum key value will be returned. sorts the results by key#desc for < and <=
+   or by key#asc for > and >= and takes the key value from the first row"
+  ([table & {:keys [key boundary operator]
+             :or {key (sort-key table)
+                  operator '<=}}]
      (-> table
-         ((fn [t] (if bound
-                   (q/select t (key-condition operator key bound))
-                    t)))
-         (q/aggregate [(key-transform-cols (sql-bound-fn operator) key)])
+         (q-inside-boundary operator key boundary)
+         (q-sorted :key key :dir (boundary-query-sort-direction operator))
+         (q/take 1)
          (q/pick key))))
 
 (defn q-bounded
-  "a stake in the sand. use it to construct a query bounded by the current value of a key, so
-   it will return the same results even though rows are added to a table.
+  "return a query bounded by the min/max value of a key, so
+   it will return the same results even though rows are added to a table
+   (assuming a monotonically increasing key value &c).
 
-   given a clojureql query, returns a new clojureql query restricted to (key operator bound).
+   given a clojureql query, returns a new clojureql query restricted to (operator key boundary).
    key: a simple or compound key. defaults to the :key metadata on table or :id.
-   operator: either :<= of :>= . defaults to :<=
-   bound:  defaults to @(q-boundary-value table :key key :operator operator), and if no rows match that query
-           then 'where false' is used as the condition"
-  [table & {:keys [key bound operator transactor] :or {key (sort-key table) operator :<= transactor cql-seq.core/transactor}}]
-  (let [use-bound (or bound (transaction transactor @(q-boundary-value table :key key :operator operator)))]
+   operator: <, >, <=, >=. defaults to <=
+   boundary:  defaults to @(q-boundary-value table :key key :operator operator), and if no rows match that query
+              then 'where false' is used as the condition"
+  [table & {:keys [key boundary operator transactor]
+            :or {key (sort-key table)
+                 operator '<=
+                 transactor @cql-seq.core/default-transactor}}]
+  (let [use-boundary (or boundary (transaction transactor @(q-boundary-value table :key key :operator operator)))]
     (-> table
-        ((fn [t] (if use-bound
-                  (q/select t (key-condition operator key use-bound))
+        ((fn [t] (if use-boundary
+                  (q/select t (q/where (key-condition operator key use-boundary)))
                   (q/select t (q/where (= false))))))
         (with-meta {:key key}))))
 
-(defn q-sorted
-  "given a clojureql query, returns a new clojureql query sorted by key.
-   if key is not supplied, defaults to the :key metadata on table or :id"
-  [table & {:keys [key] :or {key (sort-key table)}}]
-  (-> table
-      (q/sort [key])
-      (with-meta {:key key})))
-
-(defn q-seq-batch
-  "query retrieving a batch of records sorted by key with key>lower-bound"
-  [table batch-size key lower-bound]
-  (-> table
-      (q/sort [key])
-      ((fn [table] (if lower-bound
-                    (q/select table (key-condition :> key lower-bound))
-                     table)))
-      (q/take batch-size)))
+;;;;;;;;;;;;;;;;;;;;;;; batched-sequences over queries
 
 (defn query-seq-batches
   "a lazy seq of batches of rows from a clojureql query.
-   batches are sorted by key which defaults to the :key metadata item on table or :id"
-  [table & {:keys [batch-size key lower-bound transactor] :or {batch-size 1000 key (sort-key table) transactor cql-seq.core/transactor}}]
+   batches are sorted by key which defaults to the :key metadata item on table or :id,
+   and traversal direction dir is either :asc or :desc"
+  [table & {:keys [batch-size key dir lower-bound transactor]
+            :or {batch-size 1000
+                 key (sort-key table)
+                 dir :asc
+                 transactor @cql-seq.core/default-transactor}}]
   (lazy-seq
-   (let [query (q-seq-batch table batch-size key lower-bound)
+   (let [query (q-seq-batch table batch-size key dir lower-bound)
          batch (transaction transactor @query)
          c (count batch)
          last-record (last batch)
@@ -84,11 +84,16 @@
      (cons
       batch
       (if (= c batch-size) ;; if c<batch-size there are no more records
-        (query-seq-batches table :batch-size batch-size :key key :lower-bound max-key-value :transactor transactor))))))
+        (query-seq-batches table :batch-size batch-size :key key :lower-bound max-key-value :dir dir :transactor transactor))))))
 
 (defn query-seq
   "a lazy seq of rows from a clojureql query.
    rows are fetched in batches of batch-size, which defaults to 1000.
-   a key is used to sort the rows, which defaults to the :key metadata item on table or :id"
-  ([table & {:keys [batch-size key transactor] :or {batch-size 1000 key (sort-key table transactor cql-seq.core/transactor)}}]
-     (very-lazy-concat nil (query-seq-batches table :batch-size batch-size :key key :transactor transactor))))
+   a key is used to sort the rows, which defaults to the :key metadata item on table or :id,
+   and traversal direction is either :asc or :desc"
+  ([table & {:keys [batch-size key dir transactor]
+             :or {batch-size 1000
+                  key (sort-key table)
+                  dir :asc
+                  transactor @cql-seq.core/default-transactor}}]
+     (very-lazy-apply-concat nil (query-seq-batches table :batch-size batch-size :key key :dir dir :transactor transactor))))

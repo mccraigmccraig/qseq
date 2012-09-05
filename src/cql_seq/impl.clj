@@ -76,18 +76,16 @@
 (defn q-inside-boundary
   "returns a query bounded by (key operator boundary), for both simple and compound keys"
   [table operator key boundary]
-  (-> table
-      (fn [table] (if boundary
-                   (q/select table (q/where (key-condition operator key boundary)))
-                   table))))
+  (if boundary
+    (q/select table (q/where (key-condition operator key boundary)))
+    table))
 
 (defn q-outside-boundary
   "returns a query bounded by (not (key operator boundary)), for both simple and compound keys"
   [table operator key boundary]
-  (-> table
-      (fn [table] (if boundary
-                   (q/select table (q/where (not (key-condition operator key boundary))))
-                   table))))
+  (if boundary
+    (q/select table (q/where (not (key-condition operator key boundary))))
+    table))
 
 (defn q-sorted
   "returns a query sorted by key in direction dir. key may be simple or compound.

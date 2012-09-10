@@ -72,6 +72,8 @@
                  key (sort-key table)
                  dir :asc
                  transactor @cql-seq.core/default-transactor}}]
+  (if-not transactor
+    (throw (RuntimeException. "no transactor!")))
   (lazy-seq
    (let [query (q-seq-batch table batch-size key dir lower-bound)
          batch (transaction transactor @query)

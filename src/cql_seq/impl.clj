@@ -73,18 +73,24 @@
     (let [kc (compound-key-conditions operator nil keys boundaries)]
       `(~'or ~@kc))))
 
+(defn eval-where
+  "well. this is what you get for using macros in your api"
+  [conds]
+  (eval
+   `(clojureql.core/where ~conds)))
+
 (defn q-inside-boundary
   "returns a query bounded by (key operator boundary), for both simple and compound keys"
   [table operator key boundary]
   (if boundary
-    (q/select table (q/where (key-condition operator key boundary)))
+    (q/select table (eval-where (key-condition operator key boundary)))
     table))
 
 (defn q-outside-boundary
   "returns a query bounded by (not (key operator boundary)), for both simple and compound keys"
   [table operator key boundary]
   (if boundary
-    (q/select table (q/where (not (key-condition operator key boundary))))
+    (q/select table (eval-where `(~'not ~(key-condition operator key boundary))))
     table))
 
 (defn q-sorted

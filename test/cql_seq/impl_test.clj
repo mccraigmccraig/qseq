@@ -1,7 +1,13 @@
 (ns cql-seq.impl-test
   (:use clojure.test
         cql-seq.impl
-        midje.sweet))
+        midje.sweet)
+  (:require [clojure.string :as str]
+            [clojureql.core :as q]))
+
+(defn qstr
+  [q]
+  (str/trim (with-out-str (prn q))))
 
 (fact
   (boundary-query-sort-direction '<=) => :desc
@@ -50,3 +56,17 @@
   (key-condition :<= [:foo :bar :baz] [10 20 30]) => '(or (and (<= :foo 10))
                                                           (and (= :foo 10) (<= :bar 20))
                                                           (and (= :bar 20) (= :foo 10) (<= :baz 30))))
+
+(fact
+  (qstr (q-inside-boundary (q/table :foo) '< :id 10)) =>
+  "SELECT foo.* FROM foo WHERE (((foo.id < 10)))"
+
+  (qstr (q-inside-boundary (q/table :foo) '< [:name :age] ["smith" 50])) =>
+  "SELECT foo.* FROM foo WHERE (((foo.name < smith)) OR ((foo.name = smith) AND (foo.age < 50)))")
+
+(fact
+  (qstr (q-outside-boundary (q/table :foo) '< :id 10)) =>
+  "SELECT foo.* FROM foo WHERE NOT((((foo.id < 10))))"
+
+  (qstr (q-outside-boundary (q/table :foo) '< [:name :age] ["smith" 50])) =>
+  "SELECT foo.* FROM foo WHERE NOT((((foo.name < smith)) OR ((foo.name = smith) AND (foo.age < 50))))")

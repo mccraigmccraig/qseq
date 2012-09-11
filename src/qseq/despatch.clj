@@ -3,43 +3,15 @@
             qseq.clojureql)
   (:import [clojure.lang PersistentArrayMap]))
 
-(defmulti q-inside-boundary type)
-(defmulti q-outside-boundary type)
-(defmulti q-sorted type)
-(defmulti q-seq-batch type)
+(def despatch-methods [:q-inside-boundary
+                       :q-outside-boundary
+                       :q-sorted
+                       :q-seq-batch])
 
-;; korma implementations
-
-(defmethod q-inside-boundary PersistentArrayMap
-  [& args]
-  (apply qseq.korma/q-inside-boundary args))
-
-(defmethod q-outside-boundary PersistentArrayMap
-  [& args]
-  (apply qseq.korma/q-outside-boundary args))
-
-(defmethod q-sorted PersistentArrayMap
-  [& args]
-  (apply qseq.korma/q-sorted args))
-
-(defmethod q-seq-batch PersistentArrayMap
-  [& args]
-  (apply qseq.korma/q-seq-batch args))
-
-;; clojureql implementations
-
-(defmethod q-inside-boundary :default
-  [& args]
-  (apply qseq.clojureql/q-inside-boundary args))
-
-(defmethod q-outside-boundary :default
-  [& args]
-  (apply qseq.clojureql/q-outside-boundary args))
-
-(defmethod q-sorted PersistentArrayMap
-  [& args]
-  (apply qseq.clojureql/q-sorted args))
-
-(defmethod q-seq-batch PersistentArrayMap
-  [& args]
-  (apply qseq.clojureql/q-seq-batch args))
+(dorun (map (fn [method]
+              (let [mname (name method)
+                    msym (symbol mname)]
+                (eval `(defmulti ~msym type))
+                (eval `(defmethod ~msym PersistentArrayMap [& args#] (apply ~(symbol "qseq.korma" mname) args#)))
+                (eval `(defmethod ~msym :default [& args#] (apply ~(symbol "qseq.clojureql" mname) args#)))))
+            despatch-methods))

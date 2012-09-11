@@ -7,7 +7,7 @@
   "blah blah macros"
   [query conds]
   (eval
-   `(korma.core/where query conds)))
+   `(korma.core/where ~query ~conds)))
 
 (defn q-inside-boundary
   "returns a query bounded by (key operator boundary), for both simple and compound keys"

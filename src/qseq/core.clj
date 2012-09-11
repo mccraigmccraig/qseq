@@ -1,7 +1,7 @@
 (ns qseq.core
   (:use qseq.util
         qseq.key
-        qseq.clojureql)
+        qseq.despatch)
   (:require [clojure.java.jdbc :as jdbc]
             [clojureql.core :as q]))
 
@@ -22,44 +22,44 @@
 
 ;;;;;;;;;;;;;;;;;;;;; bounded queries
 
-(defn q-boundary-value
-  "returns a query to find the bounding value of a (simple or compound) key from a query.
-   key: a simple or compound key. defaults to the :key metadata on table or :id.
-   operator: <, >, <=, >=. defaults to <=
-   boundary: if given, returns bounding key value where (operator key boundary)
+;; (defn q-boundary-value
+;;   "returns a query to find the bounding value of a (simple or compound) key from a query.
+;;    key: a simple or compound key. defaults to the :key metadata on table or :id.
+;;    operator: <, >, <=, >=. defaults to <=
+;;    boundary: if given, returns bounding key value where (operator key boundary)
 
-   if operator is < or <= then the maximum key value will be returned... if operator is > or >=
-   then the minimum key value will be returned. sorts the results by key#desc for < and <=
-   or by key#asc for > and >= and takes the key value from the first row"
-  ([table & {:keys [key boundary operator]
-             :or {key (sort-key table)
-                  operator '<=}}]
-     (-> table
-         (q-inside-boundary operator key boundary)
-         (q-sorted :key key :dir (boundary-query-sort-direction operator))
-         (q/take 1)
-         (q/pick key))))
+;;    if operator is < or <= then the maximum key value will be returned... if operator is > or >=
+;;    then the minimum key value will be returned. sorts the results by key#desc for < and <=
+;;    or by key#asc for > and >= and takes the key value from the first row"
+;;   ([table & {:keys [key boundary operator]
+;;              :or {key (sort-key table)
+;;                   operator '<=}}]
+;;      (-> table
+;;          (q-inside-boundary operator key boundary)
+;;          (q-sorted :key key :dir (boundary-query-sort-direction operator))
+;;          (q/take 1)
+;;          (q/pick key))))
 
-(defn q-bounded
-  "return a query bounded by the min/max value of a key, so
-   it will return the same results even though rows are added to a table
-   (assuming a monotonically increasing key value &c).
+;; (defn q-bounded
+;;   "return a query bounded by the min/max value of a key, so
+;;    it will return the same results even though rows are added to a table
+;;    (assuming a monotonically increasing key value &c).
 
-   given a query, returns a new query restricted to (operator key boundary).
-   key: a simple or compound key. defaults to the :key metadata on table or :id.
-   operator: <, >, <=, >=. defaults to <=
-   boundary:  defaults to @(q-boundary-value table :key key :operator operator), and if no rows match that query
-              then 'where false' is used as the condition"
-  [table & {:keys [key boundary operator transactor]
-            :or {key (sort-key table)
-                 operator '<=
-                 transactor @qseq.core/default-transactor}}]
-  (let [use-boundary (or boundary (transaction transactor @(q-boundary-value table :key key :operator operator)))]
-    (-> table
-        ((fn [t] (if use-boundary
-                  (q/select t (q/where (key-condition operator key use-boundary)))
-                  (q/select t (q/where (= false))))))
-        (with-meta {:key key}))))
+;;    given a query, returns a new query restricted to (operator key boundary).
+;;    key: a simple or compound key. defaults to the :key metadata on table or :id.
+;;    operator: <, >, <=, >=. defaults to <=
+;;    boundary:  defaults to @(q-boundary-value table :key key :operator operator), and if no rows match that query
+;;               then 'where false' is used as the condition"
+;;   [table & {:keys [key boundary operator transactor]
+;;             :or {key (sort-key table)
+;;                  operator '<=
+;;                  transactor @qseq.core/default-transactor}}]
+;;   (let [use-boundary (or boundary (transaction transactor @(q-boundary-value table :key key :operator operator)))]
+;;     (-> table
+;;         ((fn [t] (if use-boundary
+;;                   (q/select t (q/where (key-condition operator key use-boundary)))
+;;                   (q/select t (q/where (= false))))))
+;;         (with-meta {:key key}))))
 
 ;;;;;;;;;;;;;;;;;;;;;;; batched-sequences over queries
 

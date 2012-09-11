@@ -23,7 +23,7 @@
 ;;;;;;;;;;;;;;;;;;;;; bounded queries
 
 (defn q-boundary-value
-  "returns a query to find the bounding value of a (simple or compound) key from a clojureql query.
+  "returns a query to find the bounding value of a (simple or compound) key from a query.
    key: a simple or compound key. defaults to the :key metadata on table or :id.
    operator: <, >, <=, >=. defaults to <=
    boundary: if given, returns bounding key value where (operator key boundary)
@@ -45,7 +45,7 @@
    it will return the same results even though rows are added to a table
    (assuming a monotonically increasing key value &c).
 
-   given a clojureql query, returns a new clojureql query restricted to (operator key boundary).
+   given a query, returns a new query restricted to (operator key boundary).
    key: a simple or compound key. defaults to the :key metadata on table or :id.
    operator: <, >, <=, >=. defaults to <=
    boundary:  defaults to @(q-boundary-value table :key key :operator operator), and if no rows match that query
@@ -63,8 +63,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;; batched-sequences over queries
 
-(defn query-seq-batches
-  "a lazy seq of batches of rows from a clojureql query.
+(defn qseq-batches
+  "a lazy seq of batches of rows from a query.
    batches are sorted by key which defaults to the :key metadata item on table or :id,
    and traversal direction dir is either :asc or :desc"
   [table & {:keys [batch-size key dir lower-bound transactor]
@@ -86,10 +86,10 @@
      (cons
       batch
       (if (= c batch-size) ;; if c<batch-size there are no more records
-        (query-seq-batches table :batch-size batch-size :key key :lower-bound max-key-value :dir dir :transactor transactor))))))
+        (qseq-batches table :batch-size batch-size :key key :lower-bound max-key-value :dir dir :transactor transactor))))))
 
-(defn query-seq
-  "a lazy seq of rows from a clojureql query.
+(defn qseq
+  "a lazy seq of rows from a query.
    rows are fetched in batches of batch-size, which defaults to 1000.
    a key is used to sort the rows, which defaults to the :key metadata item on table or :id,
    and traversal direction is either :asc or :desc"
@@ -98,4 +98,4 @@
                   key (sort-key table)
                   dir :asc
                   transactor @qseq.core/default-transactor}}]
-     (very-lazy-apply-concat nil (query-seq-batches table :batch-size batch-size :key key :dir dir :transactor transactor))))
+     (very-lazy-apply-concat nil (qseq-batches table :batch-size batch-size :key key :dir dir :transactor transactor))))

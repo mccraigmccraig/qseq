@@ -5,8 +5,9 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojars.mccraigmccraig/core.incubator "0.1.1-SNAPSHOT"]
-                 [org.clojure/java.jdbc "0.1.4"]
-                 [clojureql "1.0.3"]]
+                 [org.clojure/java.jdbc "0.2.2"]
+                 [clojureql "1.0.4"]
+                 [korma "0.3.0-beta11"]]
   :profiles {:dev
              {:dependencies [[midje "1.4.0" :exclusions [org.clojure/clojure]]]}}
   :min-lein-version "2.0.0"

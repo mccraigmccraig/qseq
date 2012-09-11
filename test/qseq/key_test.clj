@@ -16,10 +16,6 @@
 
 
 (fact
-  (sort-key (with-meta {} {:key :foo})) => :foo
-  (sort-key (with-meta {} {})) => :id)
-
-(fact
   (simple-key-sort "foo") => :foo#asc
   (simple-key-sort :foo :dir :desc) => :foo#desc
   (simple-key-sort :foo :dir "asc") => :foo#asc)

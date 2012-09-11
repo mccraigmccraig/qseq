@@ -1,7 +1,8 @@
 (ns qseq.core
+  "a lazy sequence over a Korma or ClojureQL query"
   (:use qseq.util
         qseq.key
-        qseq.despatch)
+        qseq.dispatch)
   (:require [clojure.java.jdbc :as jdbc]
             [clojureql.core :as q]))
 
@@ -21,6 +22,9 @@
   `(~transactor (fn [] ~@forms)))
 
 ;;;;;;;;;;;;;;;;;;;;; bounded queries
+
+;;; API change needed for compatability btw Korma and ClojureQL ? Korma doesn't have pick... but
+;;; maybe can do something equiv...
 
 ;; (defn q-boundary-value
 ;;   "returns a query to find the bounding value of a (simple or compound) key from a query.
@@ -65,18 +69,18 @@
 
 (defn qseq-batches
   "a lazy seq of batches of rows from a query.
-   batches are sorted by key which defaults to the :key metadata item on table or :id,
+   batches are sorted by key which defaults to the :key metadata item on query or :id,
    and traversal direction dir is either :asc or :desc"
-  [table & {:keys [batch-size key dir lower-bound transactor]
+  [query & {:keys [batch-size key dir lower-bound transactor]
             :or {batch-size 1000
-                 key (sort-key table)
+                 key (sort-key query)
                  dir :asc
                  transactor @qseq.core/default-transactor}}]
   (if-not transactor
     (throw (RuntimeException. "no transactor!")))
   (lazy-seq
-   (let [query (q-seq-batch table batch-size key dir lower-bound)
-         batch (transaction transactor @query)
+   (let [q (q-seq-batch query batch-size key dir lower-bound)
+         batch (transaction transactor @q)
          c (count batch)
          last-record (last batch)
          max-key-value (if (sequential? key)
@@ -86,16 +90,16 @@
      (cons
       batch
       (if (= c batch-size) ;; if c<batch-size there are no more records
-        (qseq-batches table :batch-size batch-size :key key :lower-bound max-key-value :dir dir :transactor transactor))))))
+        (qseq-batches query :batch-size batch-size :key key :lower-bound max-key-value :dir dir :transactor transactor))))))
 
 (defn qseq
   "a lazy seq of rows from a query.
    rows are fetched in batches of batch-size, which defaults to 1000.
-   a key is used to sort the rows, which defaults to the :key metadata item on table or :id,
+   a key is used to sort the rows, which defaults to the :key metadata item on query or :id,
    and traversal direction is either :asc or :desc"
-  ([table & {:keys [batch-size key dir transactor]
+  ([query & {:keys [batch-size key dir transactor]
              :or {batch-size 1000
-                  key (sort-key table)
+                  key (sort-key query)
                   dir :asc
                   transactor @qseq.core/default-transactor}}]
-     (very-lazy-apply-concat nil (qseq-batches table :batch-size batch-size :key key :dir dir :transactor transactor))))
+     (very-lazy-apply-concat nil (qseq-batches query :batch-size batch-size :key key :dir dir :transactor transactor))))

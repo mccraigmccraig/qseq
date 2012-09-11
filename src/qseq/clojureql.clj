@@ -2,6 +2,11 @@
   (:use qseq.key)
   (:require [clojureql.core :as q]))
 
+(defn sort-key
+  "default sort key for a query, either gotten from the :key metadata or defaults to :id"
+  [table]
+  (or (:key (meta table)) :id))
+
 (defn eval-where
   "well. this is what you get for using macros in your api"
   [conds]

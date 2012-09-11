@@ -26,11 +26,6 @@
   (inclusion-operators-for-traversal-directions (name dir)))
 
 
-(defn sort-key
-  "default sort key for a query, either gotten from the :key metadata or defaults to :id"
-  [table]
-  (or (:key (meta table)) :id))
-
 (defn simple-key-sort
   "given a :key return a :key#desc descending sort specifiers"
   [key & {:keys [dir] :or {dir "asc"}}]

@@ -5,6 +5,10 @@
   (:require [clojure.string :as str]
             [clojureql.core :as q]))
 
+(fact
+  (sort-key (with-meta {} {:key :foo})) => :foo
+  (sort-key (with-meta {} {})) => :id)
+
 (defn qstr
   [q]
   (str/trim (with-out-str (prn q))))

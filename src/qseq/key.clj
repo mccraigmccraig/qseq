@@ -1,4 +1,6 @@
-(ns qseq.key)
+(ns qseq.key
+  (:use qseq.util))
+
 
 (def boundary-query-sort-directions
   "sort directions for querying boundary values under given operators"
@@ -39,7 +41,7 @@
   "given a simple or compound key, return a list of descending sort specifiers"
   [key & {:keys [dir] :or {dir "asc"}}]
   (map (fn [k] (simple-key-sort k :dir dir))
-       (if (sequential? key) key [key])))
+       (make-sequential key)))
 
 (defn compound-key-conditions
   "expand conditions restricting (operator key boundary). eq-conds accumulates equal conditions
@@ -54,8 +56,8 @@
   "given an operator and a simple or compound key and corresponding boundary, return query conditions for records
    which meet (key operator boundary)"
   [operator key boundary]
-  (let [keys (if (sequential? key) key [key])
-        boundaries (if (sequential? boundary) boundary [boundary])]
+  (let [keys (make-sequential key)
+        boundaries (make-sequential boundary)]
     (if (not= (count keys) (count boundaries))
       (throw (RuntimeException. "key and upper-bound must have the same number of components")))
     (let [kc (compound-key-conditions operator nil keys boundaries)]

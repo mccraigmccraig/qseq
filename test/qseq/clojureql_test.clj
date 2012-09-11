@@ -39,3 +39,12 @@
 
   (qstr (q-outside-boundary (q/table :foo) '< [:name :age] ["smith" 50])) =>
   "SELECT foo.* FROM foo WHERE NOT((((foo.name < smith)) OR ((foo.name = smith) AND (foo.age < 50))))")
+
+(fact
+  (qstr (q-sorted (q/table :foo) :key :id)) => "SELECT foo.* FROM foo ORDER BY foo.id ASC"
+  (qstr (q-sorted (q/table :foo) :key :id :dir :desc)) => "SELECT foo.* FROM foo ORDER BY foo.id DESC"
+  (qstr (q-sorted (q/table :foo) :key [:name :age])) => "SELECT foo.* FROM foo ORDER BY foo.name ASC,foo.age ASC"
+  (qstr (q-sorted (q/table :foo) :key [:name :age] :dir :desc)) => "SELECT foo.* FROM foo ORDER BY foo.name DESC,foo.age DESC")
+
+(fact
+  (qstr (q-limited (q/table :foo) 10)) => "SELECT foo.* FROM foo LIMIT 10")

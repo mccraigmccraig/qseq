@@ -2,7 +2,8 @@
   "a lazy sequence over a Korma or ClojureQL query"
   (:use qseq.util
         qseq.key
-        qseq.dispatch)
+        qseq.dispatch
+        qseq.impl)
   (:require [clojure.java.jdbc :as jdbc]
             [clojureql.core :as q]))
 
@@ -66,6 +67,7 @@
 ;;         (with-meta {:key key}))))
 
 ;;;;;;;;;;;;;;;;;;;;;;; batched-sequences over queries
+
 
 (defn qseq-batches
   "a lazy seq of batches of rows from a query.

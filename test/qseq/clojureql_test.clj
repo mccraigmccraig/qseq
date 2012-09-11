@@ -9,6 +9,19 @@
   (sort-key (with-meta {} {:key :foo})) => :foo
   (sort-key (with-meta {} {})) => :id)
 
+(fact
+  (simple-key-sort "foo") => :foo#asc
+  (simple-key-sort :foo :dir :desc) => :foo#desc
+  (simple-key-sort :foo :dir "asc") => :foo#asc)
+
+(fact
+  (key-sort "foo") => [:foo#asc]
+  (key-sort "foo" :dir :asc) => [:foo#asc]
+  (key-sort "foo" :dir :desc) => [:foo#desc]
+  (key-sort [:foo "bar"]) => [:foo#asc :bar#asc]
+  (key-sort [:foo :bar] :dir :asc) => [:foo#asc :bar#asc]
+  (key-sort [:foo :bar] :dir :desc) => [:foo#desc :bar#desc])
+
 (defn qstr
   [q]
   (str/trim (with-out-str (prn q))))

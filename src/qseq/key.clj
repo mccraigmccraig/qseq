@@ -26,18 +26,6 @@
   (inclusion-operators-for-traversal-directions (name dir)))
 
 
-(defn simple-key-sort
-  "given a :key return a :key#desc descending sort specifiers"
-  [key & {:keys [dir] :or {dir "asc"}}]
-  (-> (str (name key) "#" (name dir))
-      keyword))
-
-(defn key-sort
-  "given a simple or compound key, return a list of descending sort specifiers"
-  [key & {:keys [dir] :or {dir "asc"}}]
-  (map (fn [k] (simple-key-sort k :dir dir))
-       (make-sequential key)))
-
 (defn compound-key-conditions
   "expand conditions restricting (operator key boundary). eq-conds accumulates equal conditions
    for compound keys"

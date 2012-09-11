@@ -1,4 +1,5 @@
 (ns qseq.korma
+  "Korma specific implementation"
   (:use qseq.key
         qseq.util)
   (:require [korma.core :as k]))
@@ -38,10 +39,7 @@
           query
           (make-sequential key)))
 
-(defn q-seq-batch
-  "query retrieving a batch of records sorted by key with (not (operator key lower-boundary))"
-  [query batch-size key dir lower-boundary]
-  (-> query
-      (q-sorted :key key :dir dir)
-      (q-outside-boundary (inclusion-operator-for-traversal-direction dir) key lower-boundary)
-      (k/limit batch-size)))
+(defn q-limited
+  "returns a query with limit"
+  [query limit]
+  (k/limit query limit))

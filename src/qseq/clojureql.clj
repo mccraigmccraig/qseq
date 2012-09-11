@@ -1,5 +1,7 @@
 (ns qseq.clojureql
-  (:use qseq.key)
+  "ClojureQL specific implementation"
+  (:use qseq.util
+        qseq.key)
   (:require [clojureql.core :as q]))
 
 (defn sort-key
@@ -27,6 +29,18 @@
     (q/select table (eval-where `(~'not ~(key-condition operator key boundary))))
     table))
 
+(defn simple-key-sort
+  "given a :key return a :key#desc descending sort specifiers"
+  [key & {:keys [dir] :or {dir "asc"}}]
+  (-> (str (name key) "#" (name dir))
+      keyword))
+
+(defn key-sort
+  "given a simple or compound key, return a list of descending sort specifiers"
+  [key & {:keys [dir] :or {dir "asc"}}]
+  (map (fn [k] (simple-key-sort k :dir dir))
+       (make-sequential key)))
+
 (defn q-sorted
   "returns a query sorted by key in direction dir. key may be simple or compound.
    if key is not supplied, defaults to the :key metadata on table or :id
@@ -36,10 +50,7 @@
       (q/sort (key-sort key :dir dir))
       (with-meta {:key key})))
 
-(defn q-seq-batch
-  "query retrieving a batch of records sorted by key with (not (operator key lower-boundary))"
-  [table batch-size key dir lower-boundary]
-  (-> table
-      (q-sorted :key key :dir dir)
-      (q-outside-boundary (inclusion-operator-for-traversal-direction dir) key lower-boundary)
-      (q/take batch-size)))
+(defn q-limited
+  "returns a query with limit"
+  [query limit]
+  (q/take query limit))

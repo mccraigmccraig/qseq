@@ -16,19 +16,6 @@
 
 
 (fact
-  (simple-key-sort "foo") => :foo#asc
-  (simple-key-sort :foo :dir :desc) => :foo#desc
-  (simple-key-sort :foo :dir "asc") => :foo#asc)
-
-(fact
-  (key-sort "foo") => [:foo#asc]
-  (key-sort "foo" :dir :asc) => [:foo#asc]
-  (key-sort "foo" :dir :desc) => [:foo#desc]
-  (key-sort [:foo "bar"]) => [:foo#asc :bar#asc]
-  (key-sort [:foo :bar] :dir :asc) => [:foo#asc :bar#asc]
-  (key-sort [:foo :bar] :dir :desc) => [:foo#desc :bar#desc])
-
-(fact
   (compound-key-conditions :<= nil [:foo] [10]) => '((and (<= :foo 10)))
   (compound-key-conditions :<= nil [:foo :bar] [10 20]) => '((and (<= :foo 10))
                                                             (and (= :foo 10) (<= :bar 20))))

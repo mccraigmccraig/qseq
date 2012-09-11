@@ -1,6 +1,6 @@
-(defproject cql-seq "0.1.0-SNAPSHOT"
-  :description "cql-seq: a lazy sequence for efficiently consuming ClojureQL queries"
-  :url "http://github.com/mccraigmccraig/cql-seq"
+(defproject qseq "0.1.0-SNAPSHOT"
+  :description "qseq: a lazy sequence for simply and efficiently consuming Korma and ClojureQL queries"
+  :url "http://github.com/mccraigmccraig/qseq"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.3.0"]

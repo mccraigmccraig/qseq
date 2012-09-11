@@ -1,6 +1,6 @@
-(ns cql-seq.core-test
+(ns qseq.core-test
   (:use clojure.test
-        cql-seq.core
+        qseq.core
         midje.sweet))
 
 

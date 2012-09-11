@@ -1,13 +1,13 @@
-# cql-seq
+# qseq
 
-[![Build Status](https://secure.travis-ci.org/mccraigmccraig/cql-seq.png)](http://travis-ci.org/mccraigmccraig/cql-seq)
+[![Build Status](https://secure.travis-ci.org/mccraigmccraig/qseq.png)](http://travis-ci.org/mccraigmccraig/qseq)
 
-A library which provides a sequence abstraction for use with ClojureQL queries
+A library which provides a sequence abstraction for use with Korma and ClojureQL queries
 
 ## Usage
 
   (require '[clojureql.core :as q])
-  (require '[cql-seq.core :as qs])
+  (require '[qseq.core :as qs])
 
   (-> (q/table :users)
       qs/q-seq

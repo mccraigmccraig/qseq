@@ -1,6 +1,6 @@
-(ns cql-seq.core
+(ns qseq.core
   (:use clojure.core.strint
-        cql-seq.impl)
+        qseq.impl)
   (:require [clojure.string :as str]
             [clojure.java.jdbc :as sql]
             [clojureql.core :as q]))
@@ -53,7 +53,7 @@
   [table & {:keys [key boundary operator transactor]
             :or {key (sort-key table)
                  operator '<=
-                 transactor @cql-seq.core/default-transactor}}]
+                 transactor @qseq.core/default-transactor}}]
   (let [use-boundary (or boundary (transaction transactor @(q-boundary-value table :key key :operator operator)))]
     (-> table
         ((fn [t] (if use-boundary
@@ -71,7 +71,7 @@
             :or {batch-size 1000
                  key (sort-key table)
                  dir :asc
-                 transactor @cql-seq.core/default-transactor}}]
+                 transactor @qseq.core/default-transactor}}]
   (if-not transactor
     (throw (RuntimeException. "no transactor!")))
   (lazy-seq
@@ -97,5 +97,5 @@
              :or {batch-size 1000
                   key (sort-key table)
                   dir :asc
-                  transactor @cql-seq.core/default-transactor}}]
+                  transactor @qseq.core/default-transactor}}]
      (very-lazy-apply-concat nil (query-seq-batches table :batch-size batch-size :key key :dir dir :transactor transactor))))

@@ -1,6 +1,6 @@
-(ns cql-seq.impl-test
+(ns qseq.impl-test
   (:use clojure.test
-        cql-seq.impl
+        qseq.impl
         midje.sweet)
   (:require [clojure.string :as str]
             [clojureql.core :as q]))

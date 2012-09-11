@@ -1,4 +1,4 @@
-(ns cql-seq.impl
+(ns qseq.impl
   (:use clojure.core.strint)
   (:require [clojure.string :as str]
             [clojure.java.jdbc :as sql]

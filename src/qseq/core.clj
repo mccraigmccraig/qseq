@@ -1,8 +1,8 @@
 (ns qseq.core
-  (:use clojure.core.strint
-        qseq.impl)
-  (:require [clojure.string :as str]
-            [clojure.java.jdbc :as sql]
+  (:use qseq.util
+        qseq.key
+        qseq.clojureql)
+  (:require [clojure.java.jdbc :as jdbc]
             [clojureql.core :as q]))
 
 (defonce default-transactor (atom nil))
@@ -11,8 +11,8 @@
   "construct a simple transactor, which runs a transaction on a connection from db"
   [db]
   (fn [fn]
-    (sql/with-connection db
-      (sql/transaction
+    (jdbc/with-connection db
+      (jdbc/transaction
         (fn)))))
 
 (defmacro transaction

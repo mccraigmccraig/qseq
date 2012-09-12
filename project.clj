@@ -1,4 +1,4 @@
-(defproject qseq "0.1.0-SNAPSHOT"
+(defproject qseq "0.2.0"
   :description "qseq: a lazy sequence for simply and efficiently consuming Korma and ClojureQL queries"
   :url "http://github.com/mccraigmccraig/qseq"
   :license {:name "Eclipse Public License"
@@ -16,4 +16,8 @@
              :1.5
              {:dependencies [[org.clojure/clojure "1.5.0-alpha4"]]}}
   :min-lein-version "2.0.0"
-  :plugins [[lein-midje "2.0.0-SNAPSHOT"]])
+  :plugins [[lein-midje "2.0.0-SNAPSHOT"]
+            [lein-html5-docs "1.2.3"]]
+  :html5-docs-ns-includes #"^qseq\..*"
+  :html5-docs-repository-url "https://github.com/mccraigmccraig/qseq/blob/master"
+  )

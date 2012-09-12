@@ -1,10 +1,48 @@
 (ns qseq.core-test
   (:use clojure.test
         qseq.core
-        midje.sweet))
+        midje.sweet)
+  (:require [clojure.string :as str]
+            [clojureql.core :as q]
+            [korma.core :as k]))
 
 
-;.;. One of the symptoms of an approaching nervous breakdown is the belief
-;.;. that one's work is terribly important. -- Russell
+(defn cql-qstr
+  [q]
+  (str/trim (with-out-str (prn q))))
+
+(defn k-qstr
+  [q]
+  (k/sql-only (k/exec q)))
+
 (fact
-  true => true)
+  (cql-qstr (q-boundary-value (q/table :foo))) =>
+  "SELECT foo.* FROM foo ORDER BY foo.id DESC LIMIT 1"
+
+  (cql-qstr (q-boundary-value (q/table :foo) :key :bar)) =>
+  "SELECT foo.* FROM foo ORDER BY foo.bar DESC LIMIT 1"
+
+  (cql-qstr (q-boundary-value (q/table :foo) :key [:bar :baz])) =>
+  "SELECT foo.* FROM foo ORDER BY foo.bar DESC,foo.baz DESC LIMIT 1"
+
+  (cql-qstr (q-boundary-value (q/table :foo) :key [:bar :baz] :operator '>)) =>
+  "SELECT foo.* FROM foo ORDER BY foo.bar ASC,foo.baz ASC LIMIT 1"
+
+  (cql-qstr (q-boundary-value (q/table :foo) :boundary 10)) =>
+  "SELECT foo.* FROM foo WHERE (((foo.id <= 10))) ORDER BY foo.id DESC LIMIT 1"
+
+  (cql-qstr (q-boundary-value (q/table :foo) :key [:bar :baz] :operator '> :boundary [10 20])) =>
+  "SELECT foo.* FROM foo WHERE (((foo.bar > 10)) OR ((foo.bar = 10) AND (foo.baz > 20))) ORDER BY foo.bar ASC,foo.baz ASC LIMIT 1"
+
+  (k-qstr (q-boundary-value (k/select* :foo) :key [:bar :baz] :operator '> :boundary [10 20])) =>
+  "SELECT \"foo\".* FROM \"foo\" WHERE ((\"foo\".\"bar\" > ?) OR (\"foo\".\"bar\" = ? AND \"foo\".\"baz\" > ?)) ORDER BY \"foo\".\"bar\" ASC, \"foo\".\"baz\" ASC LIMIT 1")
+
+(fact
+  (cql-qstr (q-bounded (q/table :foo) :boundary 10)) =>
+  "SELECT foo.* FROM foo WHERE (((foo.id <= 10)))"
+
+  (cql-qstr (q-bounded (q/table :foo) :key [:bar :baz] :boundary [10 20])) =>
+  "SELECT foo.* FROM foo WHERE (((foo.bar <= 10)) OR ((foo.bar = 10) AND (foo.baz <= 20)))"
+
+  (k-qstr (q-bounded (k/select* :foo) :key [:bar :baz] :boundary [10 20])) =>
+  "SELECT \"foo\".* FROM \"foo\" WHERE ((\"foo\".\"bar\" <= ?) OR (\"foo\".\"bar\" = ? AND \"foo\".\"baz\" <= ?))")

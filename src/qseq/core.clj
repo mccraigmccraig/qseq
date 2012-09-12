@@ -7,7 +7,21 @@
   (:require [clojure.java.jdbc :as jdbc]
             [clojureql.core :as q]))
 
-(defonce default-transactor (atom nil))
+(def ^:dynamic *default-transactor* nil)
+
+(defn with-default-transactor-fn
+  [transactor fn]
+  (binding [*default-transactor* transactor]
+    (fn)))
+
+(defmacro with-default-transactor
+  [transactor & forms]
+  `(with-default-transactor-fn ~transactor (fn [] ~@forms)))
+
+(defmacro transaction
+  "run some forms inside a transaction with the given transactor"
+  [transactor & forms]
+  `(~transactor (fn [] ~@forms)))
 
 (defn transactor
   "construct a simple transactor, which runs a transaction on a connection from db"
@@ -16,11 +30,6 @@
     (jdbc/with-connection db
       (jdbc/transaction
         (fn)))))
-
-(defmacro transaction
-  "run some forms inside a transaction with the given transactor"
-  [transactor & forms]
-  `(~transactor (fn [] ~@forms)))
 
 ;;;;;;;;;;;;;;;;;;;;; bounded queries
 
@@ -50,13 +59,14 @@
    given a query, returns a new query restricted to (operator key boundary).
    key - a simple or compound key. defaults to the entity :pk (Korma) or :key metadata on query (ClojureQL) or :id.
    operator - <, >, <=, >=. defaults to <=
-   boundary -  defaults to @(q-boundary-value table :key key :operator operator), and if no rows match that query
-              then 'where false' is used as the condition"
+   boundary -  defaults to (q-boundary-value table :key key :operator operator), and if no rows match that query
+              then 'where false' is used as the condition
+   transactor - used to fetch each batch in it's own transaction. default *default-transactor*"
   [query & {:keys [key boundary operator transactor]
             :or {key (sort-key query)
                  operator '<=
-                 transactor @qseq.core/default-transactor}}]
-  (let [use-boundary (or boundary (pick (transaction transactor @(q-boundary-value query :key key :operator operator))))]
+                 transactor *default-transactor*}}]
+  (let [use-boundary (or boundary (pick (transaction transactor (execute (q-boundary-value query :key key :operator operator)))))]
     (-> query
         ((fn [q] (if use-boundary
                   (q-inside-boundary q operator key use-boundary)
@@ -75,17 +85,17 @@
    key - simple or compound key to sort results. defaults to the entity :pk (Korma) or :key metadata on query (ClojureQL) or :id
    dir - :asc or :desc. default :asc
    lower-boundary - key value forming lower-boundary of results. default nil
-   transactor - used to fetch each batch in it's own transaction. default qseq.core/default-transactor"
+   transactor - used to fetch each batch in it's own transaction. default *default-transactor*"
   [query & {:keys [batch-size key dir lower-boundary transactor]
             :or {batch-size 1000
                  key (sort-key query)
                  dir :asc
-                 transactor @qseq.core/default-transactor}}]
+                 transactor *default-transactor*}}]
   (if-not transactor
     (throw (RuntimeException. "no transactor!")))
   (lazy-seq
    (let [q (q-seq-batch query batch-size key dir lower-boundary)
-         batch (transaction transactor @q)
+         batch (transaction transactor (execute q))
          c (count batch)
          last-record (last batch)
          max-key-value (if (sequential? key)
@@ -106,10 +116,10 @@
    key - simple or compound key to sort results. defaults to the entity :pk (Korma) or :key metadata on query (ClojureQL) or :id
    dir - :asc or :desc. default :asc
    lower-boundary - key value forming lower-boundary of results. default nil
-   transactor - used to fetch each batch in it's own transaction. default qseq.core/default-transactor"
+   transactor - used to fetch each batch in it's own transaction. default qseq.core/*default-transactor*"
   ([query & {:keys [batch-size key dir transactor]
              :or {batch-size 1000
                   key (sort-key query)
                   dir :asc
-                  transactor @qseq.core/default-transactor}}]
+                  transactor *default-transactor*}}]
      (very-lazy-apply-concat nil (qseq-batches query :batch-size batch-size :key key :dir dir :transactor transactor))))

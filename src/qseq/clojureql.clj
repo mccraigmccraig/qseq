@@ -59,3 +59,8 @@
   "returns a query with limit"
   [query limit]
   (q/take query limit))
+
+(defn execute
+  "execute a query"
+  [query]
+  @query)

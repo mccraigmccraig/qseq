@@ -1,7 +1,9 @@
 (ns qseq.core-test
   (:use clojure.test
-        qseq.core
-        midje.sweet)
+        midje.sweet
+        qseq.impl
+        qseq.dispatch
+        qseq.core)
   (:require [clojure.string :as str]
             [clojureql.core :as q]
             [korma.core :as k]))
@@ -46,3 +48,12 @@
 
   (k-qstr (q-bounded (k/select* :foo) :key [:bar :baz] :boundary [10 20])) =>
   "SELECT \"foo\".* FROM \"foo\" WHERE ((\"foo\".\"bar\" <= ?) OR (\"foo\".\"bar\" = ? AND \"foo\".\"baz\" <= ?))")
+
+
+(with-default-transactor (fn [f] (f))
+
+  (fact
+    (let [batches (qseq-batches (q/table :foo))]
+      (first batches) => [{:id 1} {:id 2}])
+    (provided
+      (execute anything) => [{:id 1} {:id 2}])))

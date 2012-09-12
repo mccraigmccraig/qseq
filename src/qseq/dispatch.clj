@@ -9,7 +9,8 @@
                        :q-inside-boundary
                        :q-outside-boundary
                        :q-sorted
-                       :q-limited])
+                       :q-limited
+                       :execute])
 
 (defn dispatch-fn
  [& args]

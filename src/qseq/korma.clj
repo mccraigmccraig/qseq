@@ -48,3 +48,9 @@
   "returns a query with limit"
   [query limit]
   (k/limit query limit))
+
+(defn execute
+  "execute a query"
+  [query]
+  (k/exec query)
+  )

@@ -3,7 +3,7 @@
   :url "http://github.com/mccraigmccraig/qseq"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojars.mccraigmccraig/core.incubator "0.1.1-SNAPSHOT"]
+  :dependencies [[org.clojars.mccraigmccraig/core.incubator "0.1.1-20111019.122151-1"]
                  [org.clojure/java.jdbc "0.2.2"]
                  [clojureql "1.0.4"]
                  [korma "0.3.0-beta11"]]

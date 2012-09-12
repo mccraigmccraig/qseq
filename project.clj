@@ -6,7 +6,7 @@
   :dependencies [[org.clojars.mccraigmccraig/core.incubator "0.1.1-20111019.122151-1"]
                  [org.clojure/java.jdbc "0.2.2"]
                  [clojureql "1.0.4"]
-                 [korma "0.3.0-beta11"]]
+                 [mccraigmccraig/korma "0.3.0-beta11"]]
   :profiles {:dev
              {:dependencies [[midje "1.4.0" :exclusions [org.clojure/clojure]]]}
              :1.3

@@ -5,6 +5,7 @@
   (:import [clojure.lang  APersistentMap]))
 
 (def dispatch-methods [:sort-key
+                       :q-empty
                        :q-inside-boundary
                        :q-outside-boundary
                        :q-sorted

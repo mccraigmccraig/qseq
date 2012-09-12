@@ -27,6 +27,10 @@
   (str/trim (with-out-str (prn q))))
 
 (fact
+  (qstr (q-empty (q/table :foo))) =>
+  "SELECT foo.* FROM foo WHERE (false)")
+
+(fact
   (qstr (q-inside-boundary (q/table :foo) '< :id 10)) =>
   "SELECT foo.* FROM foo WHERE (((foo.id < 10)))"
 

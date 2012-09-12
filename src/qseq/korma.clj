@@ -15,6 +15,11 @@
   (eval
    `(korma.core/where ~query ~conds)))
 
+(defn q-empty
+  "return a query which will match no rows"
+  [query]
+  (k/where query (= true false)))
+
 (defn q-inside-boundary
   "returns a query bounded by (key operator boundary), for both simple and compound keys"
   [query operator key boundary]

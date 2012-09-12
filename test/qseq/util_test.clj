@@ -14,3 +14,7 @@
   (make-sequential 1) => [1]
   (make-sequential "foo") => ["foo"]
   (make-sequential [1 2 3]) => [1 2 3])
+
+(fact
+  (pick [{:foo 1 :bar 2 :baz 3} {:foo 5 :bar 6 :baz 7}] [:foo :bar]) => {:foo 1 :bar 2}
+  (pick nil [:foo :bar]) => nil)

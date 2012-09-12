@@ -15,6 +15,11 @@
   (eval
    `(clojureql.core/where ~conds)))
 
+(defn q-empty
+  "return a query which will match no rows"
+  [table]
+  (q/select table (q/where (= false))))
+
 (defn q-inside-boundary
   "returns a query bounded by (key operator boundary), for both simple and compound keys"
   [table operator key boundary]

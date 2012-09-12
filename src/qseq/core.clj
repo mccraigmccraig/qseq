@@ -10,11 +10,17 @@
 (def ^:dynamic *default-transactor*
   "if a *default-transactor* is set it will be used in calls where a transactor is required
    but not explicitly given"
-  nil)
+  (atom nil))
+
+(defn set-default-transactor
+  "set a global value for *default-transactor*. may be dynamically rebound by
+   with-default-transactor"
+  [transactor]
+  (swap! *default-transactor* (fn [old] transactor)))
 
 (defn with-default-transactor-fn
   [transactor fn]
-  (binding [*default-transactor* transactor]
+  (binding [*default-transactor* (atom transactor)]
     (fn)))
 
 (defmacro with-default-transactor
@@ -69,7 +75,7 @@
   [query & {:keys [key boundary operator transactor]
             :or {key (sort-key query)
                  operator '<=
-                 transactor *default-transactor*}}]
+                 transactor @*default-transactor*}}]
   (let [use-boundary (or boundary (pick (transaction transactor (execute (q-boundary-value query :key key :operator operator)))))]
     (-> query
         ((fn [q] (if use-boundary
@@ -94,7 +100,7 @@
             :or {batch-size 1000
                  key (sort-key query)
                  dir :asc
-                 transactor *default-transactor*}}]
+                 transactor @*default-transactor*}}]
   (if-not transactor
     (throw (RuntimeException. "no transactor!")))
   (lazy-seq
@@ -124,5 +130,5 @@
              :or {batch-size 1000
                   key (sort-key query)
                   dir :asc
-                  transactor *default-transactor*}}]
+                  transactor @*default-transactor*}}]
      (very-lazy-apply-concat nil (qseq-batches query :batch-size batch-size :key key :dir dir :transactor transactor))))

@@ -8,6 +8,21 @@
             [clojureql.core :as q]
             [korma.core :as k]))
 
+(fact
+  (against-background (before :facts (set-default-transactor ---transactor---) ) (after :facts (set-default-transactor nil)))
+  @*default-transactor* => ---transactor---)
+
+(fact
+  (against-background (before :facts (do (set-default-transactor ---transactor---) (set-default-transactor nil))))
+  @*default-transactor* => nil)
+
+(fact
+  (against-background (before :facts (set-default-transactor ---transactor---) ) (after :facts (set-default-transactor nil)))
+  (with-default-transactor ---thread-transactor---
+    @*default-transactor* => ---thread-transactor---))
+
+(fact
+  (transaction (fn [f] (f)) (+ 12 15)) => 27)
 
 (defn cql-qstr
   [q]

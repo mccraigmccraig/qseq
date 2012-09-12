@@ -25,10 +25,11 @@
 ;;;;;;;;;;;;;;;;;;;;; bounded queries
 
 (defn q-boundary-value
-  "returns a query to find the bounding value of a (simple or compound) key from a query.
-   key: a simple or compound key. defaults to the :key metadata on query or :id.
-   operator: <, >, <=, >=. defaults to <=
-   boundary: if given, returns bounding key value where (operator key boundary)
+  "returns a query to find the boundary value of a (simple or compound) key from a query.
+
+   key - a simple or compound key. defaults to the entity :pk (Korma) or :key metadata on query (ClojureQL) or :id.
+   operator - <, >, <=, >=. defaults to <=
+   boundary - if given, returns bounding key value where (operator key boundary)
 
    if operator is < or <= then the maximum key value will be returned... if operator is > or >=
    then the minimum key value will be returned. sorts the results by key#desc for < and <=
@@ -47,9 +48,9 @@
    (assuming a monotonically increasing key value &c).
 
    given a query, returns a new query restricted to (operator key boundary).
-   key: a simple or compound key. defaults to the :key metadata on query or :id.
-   operator: <, >, <=, >=. defaults to <=
-   boundary:  defaults to @(q-boundary-value table :key key :operator operator), and if no rows match that query
+   key - a simple or compound key. defaults to the entity :pk (Korma) or :key metadata on query (ClojureQL) or :id.
+   operator - <, >, <=, >=. defaults to <=
+   boundary -  defaults to @(q-boundary-value table :key key :operator operator), and if no rows match that query
               then 'where false' is used as the condition"
   [query & {:keys [key boundary operator transactor]
             :or {key (sort-key query)
@@ -66,10 +67,16 @@
 
 
 (defn qseq-batches
-  "a lazy seq of batches of rows from a query.
-   batches are sorted by key which defaults to the :key metadata item on query or :id,
-   and traversal direction dir is either :asc or :desc"
-  [query & {:keys [batch-size key dir lower-bound transactor]
+  "a lazy seq of batches of rows from a query. results are sorted by a key and traversal direction
+   can be given
+
+   query - the Korma or ClojureQL query
+   batch-size - batch size. default 1000
+   key - simple or compound key to sort results. defaults to the entity :pk (Korma) or :key metadata on query (ClojureQL) or :id
+   dir - :asc or :desc. default :asc
+   lower-boundary - key value forming lower-boundary of results. default nil
+   transactor - used to fetch each batch in it's own transaction. default qseq.core/default-transactor"
+  [query & {:keys [batch-size key dir lower-boundary transactor]
             :or {batch-size 1000
                  key (sort-key query)
                  dir :asc
@@ -77,7 +84,7 @@
   (if-not transactor
     (throw (RuntimeException. "no transactor!")))
   (lazy-seq
-   (let [q (q-seq-batch query batch-size key dir lower-bound)
+   (let [q (q-seq-batch query batch-size key dir lower-boundary)
          batch (transaction transactor @q)
          c (count batch)
          last-record (last batch)
@@ -88,13 +95,18 @@
      (cons
       batch
       (if (= c batch-size) ;; if c<batch-size there are no more records
-        (qseq-batches query :batch-size batch-size :key key :lower-bound max-key-value :dir dir :transactor transactor))))))
+        (qseq-batches query :batch-size batch-size :key key :lower-boundary max-key-value :dir dir :transactor transactor))))))
 
 (defn qseq
-  "a lazy seq of rows from a query.
-   rows are fetched in batches of batch-size, which defaults to 1000.
-   a key is used to sort the rows, which defaults to the :key metadata item on query or :id,
-   and traversal direction is either :asc or :desc"
+  "a lazy seq of rows from a query. results are sorted by a key, and traversal direction can be given. behind the
+   scenes rows are fetched in batches, for efficiency
+
+   query - the Korma or ClojureQL query
+   batch-size - batch size. default 1000
+   key - simple or compound key to sort results. defaults to the entity :pk (Korma) or :key metadata on query (ClojureQL) or :id
+   dir - :asc or :desc. default :asc
+   lower-boundary - key value forming lower-boundary of results. default nil
+   transactor - used to fetch each batch in it's own transaction. default qseq.core/default-transactor"
   ([query & {:keys [batch-size key dir transactor]
              :or {batch-size 1000
                   key (sort-key query)

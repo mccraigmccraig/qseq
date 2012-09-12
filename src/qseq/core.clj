@@ -98,10 +98,9 @@
          batch (transaction transactor (execute q))
          c (count batch)
          last-record (last batch)
-         max-key-value (if (sequential? key)
-                         (map last-record key)
-                         (last-record key))]
-     (prn query)
+         max-key-value (if last-record (if (sequential? key)
+                                         (map last-record key)
+                                         (last-record key)))]
      (cons
       batch
       (if (= c batch-size) ;; if c<batch-size there are no more records

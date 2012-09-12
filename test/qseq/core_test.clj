@@ -53,7 +53,36 @@
 (with-default-transactor (fn [f] (f))
 
   (fact
-    (let [batches (qseq-batches (q/table :foo))]
-      (first batches) => [{:id 1} {:id 2}])
+    (doall (qseq-batches (q/table :foo) :batch-size 2)) => [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] [{:id 5}]]
     (provided
-      (execute anything) => [{:id 1} {:id 2}])))
+      (execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] [{:id 5}]] ))
+
+  (fact
+    (doall (qseq-batches (q/table :foo) :batch-size 2)) => [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] []]
+    (provided
+      (execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] []] ))
+
+  (fact
+    (doall (qseq-batches (q/table :foo) :batch-size 2)) => [ [] ]
+    (provided
+      (execute anything) =streams=> [ [] ] ))
+
+  )
+
+(with-default-transactor (fn [f] (f))
+
+  (fact
+    (doall (qseq (q/table :foo) :batch-size 2)) => [ {:id 1} {:id 2} {:id 3} {:id 4} {:id 5} ]
+    (provided
+      (execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] [{:id 5}]] ))
+
+  (fact
+    (doall (qseq (q/table :foo) :batch-size 2)) => [ {:id 1} {:id 2} {:id 3} {:id 4} ]
+    (provided
+      (execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] []] ))
+
+  (fact
+    (doall (qseq (q/table :foo) :batch-size 2)) => [ ]
+    (provided
+      (execute anything) =streams=> [ [] ] ))
+  )

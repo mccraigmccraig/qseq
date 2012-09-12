@@ -7,7 +7,10 @@
   (:require [clojure.java.jdbc :as jdbc]
             [clojureql.core :as q]))
 
-(def ^:dynamic *default-transactor* nil)
+(def ^:dynamic *default-transactor*
+  "if a *default-transactor* is set it will be used in calls where a transactor is required
+   but not explicitly given"
+  nil)
 
 (defn with-default-transactor-fn
   [transactor fn]
@@ -15,6 +18,7 @@
     (fn)))
 
 (defmacro with-default-transactor
+  "execute forms with *default-transactor* bound to transactor"
   [transactor & forms]
   `(with-default-transactor-fn ~transactor (fn [] ~@forms)))
 
@@ -24,7 +28,7 @@
   `(~transactor (fn [] ~@forms)))
 
 (defn transactor
-  "construct a simple transactor, which runs a transaction on a connection from db"
+  "construct a transactor, which runs a transaction on a connection from db"
   [db]
   (fn [fn]
     (jdbc/with-connection db

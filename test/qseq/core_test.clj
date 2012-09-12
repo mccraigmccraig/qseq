@@ -55,34 +55,41 @@
   (fact
     (doall (qseq-batches (q/table :foo) :batch-size 2)) => [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] [{:id 5}]]
     (provided
-      (execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] [{:id 5}]] ))
+      (qseq.clojureql/execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] [{:id 5}]] ))
 
   (fact
     (doall (qseq-batches (q/table :foo) :batch-size 2)) => [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] []]
     (provided
-      (execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] []] ))
+      (qseq.clojureql/execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] []] ))
 
   (fact
     (doall (qseq-batches (q/table :foo) :batch-size 2)) => [ [] ]
     (provided
-      (execute anything) =streams=> [ [] ] ))
+      (qseq.clojureql/execute anything) =streams=> [ [] ] ))
 
-  )
+  (fact
+    (doall (qseq-batches (k/select* :foo) :batch-size 2)) => [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] []]
+    (provided
+      (qseq.korma/execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] []] )))
 
 (with-default-transactor (fn [f] (f))
 
   (fact
     (doall (qseq (q/table :foo) :batch-size 2)) => [ {:id 1} {:id 2} {:id 3} {:id 4} {:id 5} ]
     (provided
-      (execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] [{:id 5}]] ))
+      (qseq.clojureql/execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] [{:id 5}]] ))
 
   (fact
     (doall (qseq (q/table :foo) :batch-size 2)) => [ {:id 1} {:id 2} {:id 3} {:id 4} ]
     (provided
-      (execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] []] ))
+      (qseq.clojureql/execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] []] ))
 
   (fact
     (doall (qseq (q/table :foo) :batch-size 2)) => [ ]
     (provided
-      (execute anything) =streams=> [ [] ] ))
-  )
+      (qseq.clojureql/execute anything) =streams=> [ [] ] ))
+
+  (fact
+    (doall (qseq (k/select* :foo) :batch-size 2)) => [ {:id 1} {:id 2} {:id 3} {:id 4} ]
+    (provided
+      (qseq.korma/execute anything) =streams=> [ [{:id 1} {:id 2}] [{:id 3} {:id 4}] []] ))  )

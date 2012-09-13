@@ -2,7 +2,8 @@
   "ClojureQL specific implementation"
   (:use qseq.util
         qseq.key)
-  (:require [clojureql.core :as q]))
+  (:require [clojure.tools.logging :as log]
+            [clojureql.core :as q]))
 
 (defn sort-key
   "default sort key for a query, either gotten from the :key metadata or defaults to :id"
@@ -63,4 +64,5 @@
 (defn execute
   "execute a query"
   [query]
+  (log/debug (with-out-str (prn query)))
   @query)

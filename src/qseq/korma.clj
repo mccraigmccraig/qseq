@@ -2,7 +2,8 @@
   "Korma specific implementation"
   (:use qseq.key
         qseq.util)
-  (:require [korma.core :as k]))
+  (:require [clojure.tools.logging :as log]
+            [korma.core :as k]))
 
 (defn sort-key
   "default sort-key for a query, either the :pk from the entity or defaults to :id"
@@ -52,5 +53,6 @@
 (defn execute
   "execute a query"
   [query]
+  (log/debug (with-out-str (k/dry-run (k/exec query))))
   (k/exec query)
   )

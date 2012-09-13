@@ -2,7 +2,7 @@
 
 [![Build Status](https://secure.travis-ci.org/mccraigmccraig/qseq.png)](http://travis-ci.org/mccraigmccraig/qseq)
 
-A library which provides a sequence abstraction for use with Korma and ClojureQL queries
+A library which provides a lazy sequence over Korma and ClojureQL queries
 
 Results are sorted by a key, which may be a compound key. The direction of the sort may be specified
 

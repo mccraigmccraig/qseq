@@ -9,11 +9,23 @@
    ">"  :asc
    ">=" :asc})
 
+(def boundary-excluding-operators
+  "if a query is boundary-inclusive with a compound key, all of the
+   clauses but the final clause must use the corresponding boundary-excluding operator"
+  {"<" '<
+   "<=" '<
+   ">" '>
+   ">=" '>})
+
 (defn boundary-query-sort-direction
   "return the sort direction to use such that the first row of a bounded query will
    return the boundary value of the key under the operator"
   [operator]
   (boundary-query-sort-directions (name operator)))
+
+(defn boundary-excluding-operator
+  [operator]
+  (boundary-excluding-operators (name operator)))
 
 (def inclusion-operators-for-traversal-directions
   "inclusion operators for different sort directions"
@@ -30,10 +42,13 @@
   "expand conditions restricting (operator key boundary). eq-conds accumulates equal conditions
    for compound keys"
   [operator eq-conds [key & next-keys] [boundary & next-boundaries]]
-  (cons
-   `(~'and ~@eq-conds (~(-> operator name symbol) ~key ~boundary))
-   (if (not-empty next-keys)
-     (compound-key-conditions operator (conj eq-conds `(~'= ~key ~boundary)) next-keys next-boundaries))))
+  (let [bxo (boundary-excluding-operator operator)]
+    (cons
+     (if (not-empty next-keys)
+       `(~'and ~@eq-conds (~(-> bxo name symbol) ~key ~boundary))
+       `(~'and ~@eq-conds (~(-> operator name symbol) ~key ~boundary)))
+     (if (not-empty next-keys)
+       (compound-key-conditions operator (conj eq-conds `(~'= ~key ~boundary)) next-keys next-boundaries)))))
 
 (defn key-condition
   "given an operator and a simple or compound key and corresponding boundary, return query conditions for records

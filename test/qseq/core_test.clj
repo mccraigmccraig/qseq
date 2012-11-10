@@ -59,10 +59,10 @@
   "SELECT foo.* FROM foo WHERE (((foo.id <= 10)))"
 
   (cql-qstr (q-bounded (q/table :foo) :key [:bar :baz] :boundary [10 20])) =>
-  "SELECT foo.* FROM foo WHERE (((foo.bar <= 10)) OR ((foo.bar = 10) AND (foo.baz <= 20)))"
+  "SELECT foo.* FROM foo WHERE (((foo.bar < 10)) OR ((foo.bar = 10) AND (foo.baz <= 20)))"
 
   (k-qstr (q-bounded (k/select* :foo) :key [:bar :baz] :boundary [10 20])) =>
-  "SELECT \"foo\".* FROM \"foo\" WHERE ((\"foo\".\"bar\" <= ?) OR (\"foo\".\"bar\" = ? AND \"foo\".\"baz\" <= ?))")
+  "SELECT \"foo\".* FROM \"foo\" WHERE ((\"foo\".\"bar\" < ?) OR (\"foo\".\"bar\" = ? AND \"foo\".\"baz\" <= ?))")
 
 
 (with-default-transactor (fn [f] (f))

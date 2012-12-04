@@ -40,8 +40,8 @@ the thread using the `with-default-transactor` macro, after which a transactor n
 
 ## Note
 
-Because trunk Korma insists on managing it's own connections and connection-pooling, qseq currently depends on a fork which permits
-the use of an externally supplied connection. It's a 3 line change, which doesn't change Korma functionality. A pull-request has
+The current Korma release insists on managing it's own connections and connection-pooling, but a pull-request was accepted to fix this, so qseq currently depends on a snapshot build of Korma which permits
+the use of an externally supplied connection. Qseq will move to a dependency on released Korma at the next release
 been submitted
 
 ## License

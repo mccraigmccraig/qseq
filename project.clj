@@ -10,7 +10,7 @@
   :profiles {:dev
              {:dependencies [[midje "1.4.0" :exclusions [org.clojure/clojure]]
                              [clojureql "1.0.4"]
-                             [mccraigmccraig/korma "0.3.0-beta11"]]}
+                             [mccraigmccraig/korma "0.3.0-beta12"]]}
              :1.3
              {:dependencies [[org.clojure/clojure "1.3.0"]]}
              :1.4

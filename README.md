@@ -38,12 +38,6 @@ the thread using the `with-default-transactor` macro, after which a transactor n
                   (q/where (= :posts.user_id :users.id)))
           (qs/qseq [:users.id :posts.id] :dir :asc)))
 
-## Note
-
-The current Korma release insists on managing it's own connections and connection-pooling, but a pull-request was accepted to fix this, so qseq currently depends on a snapshot build of Korma which permits
-the use of an externally supplied connection. Qseq will move to a dependency on released Korma at the next release
-been submitted
-
 ## License
 
 Copyright © 2012 mccraigmccraig of the clan mccraig

@@ -8,7 +8,7 @@
 (defn sort-key
   "default sort-key for a query, either the :pk from the entity or defaults to :id"
   [query]
-  (or (-> query :ent :pk) :id))
+  (or (-> query meta :key) (-> query :ent :pk) :id))
 
 (defn eval-where
   "blah blah macros"

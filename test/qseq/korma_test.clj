@@ -13,7 +13,8 @@
   (sort-key (k/select* foo)) => :id
   (sort-key (k/select* bar)) => :name
   (sort-key (k/select* baz)) => [:name :age]
-  (sort-key (k/select* :foo)) => :id)
+  (sort-key (k/select* :foo)) => :id
+  (sort-key (with-meta (k/select* :foo) {:key :baz})) => :baz)
 
 (defn qstr
   [q]

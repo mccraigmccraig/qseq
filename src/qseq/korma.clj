@@ -10,11 +10,14 @@
   [query]
   (or (-> query meta :key) (-> query :ent :pk) :id))
 
+(def ^:dynamic ^:private *q* nil)
 (defn eval-where
-  "blah blah macros"
+  "blah blah macros. if the query is inserted into the eval template it works with many
+   queries, but fails to compile some queries. using a dynamic variable sidesteps the issue"
   [query conds]
-  (eval
-   `(korma.core/where ~query ~conds)))
+  (binding [*q* query]
+    (eval
+     `(korma.core/where @#'*q* ~conds))))
 
 (defn q-empty
   "return a query which will match no rows"

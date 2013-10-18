@@ -108,9 +108,14 @@
          batch (transaction transactor (execute q))
          c (count batch)
          last-record (last batch)
-         max-key-value (if last-record (if (sequential? key)
-                                         (map last-record key)
-                                         (last-record key)))]
+         max-key-value (when last-record (if (sequential? key)
+                                           (map last-record key)
+                                           (last-record key)))
+         _ (when (and last-record
+                      (if (sequential? max-key-value)
+                        (some nil? max-key-value)
+                        (nil? max-key-value)))
+             (throw (RuntimeException. (str "a component of the extracted key is nil: " (prn-str max-key-value)))))]
      (cons
       batch
       (if (= c batch-size) ;; if c<batch-size there are no more records

@@ -46,10 +46,9 @@
   [db]
   (fn [f]
     (kdb/with-db db
-      (binding [clojure.java.jdbc.deprecated/*db* kdb/*current-conn*]
+      (binding [clojure.java.jdbc.deprecated/*db* (assoc kdb/*current-conn* :level 0 :rollback (atom false))]
         (kdb/transaction
          (f))))))
-
 
 ;;;;;;;;;;;;;;;;;;;;; bounded queries
 

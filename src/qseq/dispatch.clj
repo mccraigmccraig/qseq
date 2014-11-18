@@ -1,7 +1,6 @@
 (ns qseq.dispatch
-  "dispatch methods to Korma or ClojureQL implementations"
-  (:require qseq.korma
-            qseq.clojureql)
+  "dispatch methods to Korma or (just Korma these days) implementations"
+  (:require qseq.korma)
   (:import [clojure.lang  APersistentMap]))
 
 (def dispatch-methods [:sort-key
@@ -15,13 +14,11 @@
 (defn dispatch-fn
  [& args]
  (if (isa? (type (first args)) APersistentMap)
-   :korma
-   :clojureql))
+   :korma))
 
 (dorun (map (fn [method]
               (let [mname (name method)
                     msym (symbol mname)]
                 (eval `(defmulti ~msym dispatch-fn))
-                (eval `(defmethod ~msym :korma [& args#] (apply #'~(symbol "qseq.korma" mname) args#)))
-                (eval `(defmethod ~msym :clojureql [& args#] (apply #'~(symbol "qseq.clojureql" mname) args#)))))
+                (eval `(defmethod ~msym :korma [& args#] (apply #'~(symbol "qseq.korma" mname) args#)))))
             dispatch-methods))

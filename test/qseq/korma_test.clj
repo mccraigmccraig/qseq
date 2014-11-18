@@ -22,7 +22,7 @@
 
 (fact
   (qstr (q-empty (k/select* foo))) =>
-  "SELECT \"foo\".* FROM \"foo\" WHERE TRUE = FALSE")
+  "SELECT \"foo\".* FROM \"foo\" WHERE ? = ?")
 
 (fact
   (qstr (q-inside-boundary (k/select* foo) '< :id 10)) =>

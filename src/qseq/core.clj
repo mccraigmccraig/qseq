@@ -4,8 +4,7 @@
         qseq.key
         qseq.dispatch
         qseq.impl)
-  (:require [clojure.java.jdbc :as jdbc]
-            [clojureql.core :as q]))
+  (:require [clojure.java.jdbc.deprecated :as jdbc]))
 
 (def ^:dynamic *default-transactor*
   "if a *default-transactor* is set it will be used in calls where a transactor is required

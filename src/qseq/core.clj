@@ -4,7 +4,9 @@
         qseq.key
         qseq.dispatch
         qseq.impl)
-  (:require [clojure.java.jdbc.deprecated :as jdbc]))
+  (:require [clojure.java.jdbc :as jdbc]
+            [korma.db :as kdb]
+            clojure.java.jdbc.deprecated))
 
 (def ^:dynamic *default-transactor*
   "if a *default-transactor* is set it will be used in calls where a transactor is required
@@ -32,13 +34,22 @@
   [transactor & forms]
   `(~transactor (fn [] ~@forms)))
 
-(defn transactor
+(defn jdbc-only-transactor
   "construct a transactor, which runs a transaction on a connection from db"
   [db]
-  (fn [fn]
-    (jdbc/with-connection db
-      (jdbc/transaction
-        (fn)))))
+  (fn [f]
+    (jdbc/db-transaction* db (fn [_] (f)))))
+
+(defn transactor
+  "transactor which binds the same default connection for korma, clojure.java.jdbc
+   and clojure.java.jdbc.deprecated"
+  [db]
+  (fn [f]
+    (kdb/with-db db
+      (binding [clojure.java.jdbc.deprecated/*db* kdb/*current-conn*]
+        (kdb/transaction
+         (f))))))
+
 
 ;;;;;;;;;;;;;;;;;;;;; bounded queries
 

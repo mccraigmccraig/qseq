@@ -46,9 +46,12 @@
   [db]
   (fn [f]
     (kdb/with-db db
-      (binding [clojure.java.jdbc.deprecated/*db* (assoc kdb/*current-conn* :level 0 :rollback (atom false))]
-        (kdb/transaction
-         (f))))))
+      ;; this function 'owns' the transaction
+      (kdb/transaction
+       ;; while the deprecated transaction fn uses the same :level and :rollback keys
+       ;; in the *db* map as java.jdbc and korma in *current-conn*
+       (binding [clojure.java.jdbc.deprecated/*db* kdb/*current-conn*]
+          (f))))))
 
 ;;;;;;;;;;;;;;;;;;;;; bounded queries
 

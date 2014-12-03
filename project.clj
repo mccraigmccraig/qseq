@@ -7,7 +7,7 @@
 
 
 
-(defproject qseq "0.6.2"
+(defproject qseq "0.6.3"
   :description "qseq: a lazy sequence for simply and efficiently consuming Korma"
   :url "http://github.com/mccraigmccraig/qseq"
   :license {:name "Eclipse Public License"
